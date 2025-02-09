@@ -1,0 +1,241 @@
+:::REDIS:::
+Redis (Remote Dictionary Server) là một cơ sở dữ liệu NoSQL dạng key-value có tốc độ truy xuất siêu nhanh nhờ lưu trữ dữ liệu trong bộ nhớ (in-memory).
+🔵 Đặc điểm chính của Redis:
+✅ In-memory Database: Dữ liệu lưu trong RAM giúp truy xuất nhanh.
+✅ Hỗ trợ nhiều kiểu dữ liệu: Strings, Lists, Sets, Sorted Sets, Hashes...
+✅ Replication: Hỗ trợ master-replica để sao lưu dữ liệu.
+✅ Persistence (Lưu trữ dữ liệu lâu dài): Hỗ trợ RDB, AOF để lưu dữ liệu xuống ổ cứng.
+✅ Pub/Sub & Streams: Hỗ trợ messaging cho real-time applications.
+✅ Transactions & Scripting: Hỗ trợ thực thi lệnh nhóm với Lua scripts.
+
+🔵 Ứng dụng của Redis trong lập trình web
+1. Caching – Lưu trữ dữ liệu tạm thời
+    ✔ Cache database query: Lưu kết quả truy vấn để giảm tải cho database.
+    ✔ Cache API responses: Tăng tốc API bằng cách lưu response của request trước đó.
+    ✔ Cache session (Authentication & JWT storage): Lưu phiên đăng nhập thay vì dùng cookies.
+
+2. Session Management – Quản lý phiên đăng nhập
+    ✔ Redis có thể lưu session của người dùng thay vì dùng cookies hoặc database chậm hơn.
+    ✔ Tích hợp với Express-session, Passport.js để lưu session người dùng.
+
+3. Rate Limiting – Giới hạn số lượng request
+    Redis giúp ngăn chặn spam bằng cách giới hạn số lượng request từ một user/IP trong một khoảng thời gian nhất định.
+
+4. Pub/Sub – Hệ thống real-time
+    Redis hỗ trợ Publish/Subscribe, giúp xây dựng các tính năng như:
+    ✔ Real-time notifications 📢
+    ✔ Chat ứng dụng 💬
+    ✔ Live feed & event streaming 🎥
+
+5. Message Queue với Redis Streams
+    Redis Streams có thể hoạt động như Message Queue, tương tự Kafka, RabbitMQ.
+    ✔ Hỗ trợ chạy nền (background jobs)
+    ✔ Hỗ trợ XGROUP để xử lý theo nhóm worker
+    ✔ Phù hợp với Microservices Event-driven Architecture
+
+
+🔵 Làm việc với Redis CLI
+1. Kết nối vào Redis (Bash)
+ TH1: sử dụng docker => docker exec -it my-redis redis-cli
+ TH2: Nếu Redis đang chạy trên máy cục bộ (không dùng Docker): redis-cli
+
+2. Các lệnh cơ bản trong Redis CLI
+📌 Làm việc với key-value
+2.1. Thêm dữ liệu (SET)
+    SET mykey "Hello Redis"
+    SET count 1
+2.1.1. set nhiều key (mset key1 value1 key2 value2)
+2.1.2. tăng value lên 1 (+1)( tính nguyên tử)
+    incr count
+2.1.3. tăng nhiều
+    incrby count 10 (+10)
+2.1.4. trừ 1
+    decr count
+2.1.5. trừ nhiều
+    decrby count 10 (-10)
+    
+2.2. Lấy dữ liệu (GET)
+    GET mykey
+2.2.1. lấy 1 phần (GETRANGE mykey start end)
+    GETRANGE mykey 0 3
+2.2.2. lấy nhiều key (mget key1 key2)
+2.2.3. length key (strlen mykey)
+
+2.3. Kiểm tra key có tồn tại không (EXISTS)
+    EXISTS mykey => Kết quả: true: 1, false: 0
+2.4. Xóa key (DEL)
+    DEL mykey
+2.5. Thiết lập key có thời gian sống (EXPIRE)
+    SET temp "This will expire"
+    EXPIRE temp 10  # Key sẽ tự động xóa sau 10 giây
+2.6. Kiểm tra thời gian sống của key (TTL)
+    TTL temp => trả về giây, nếu không set EXPIRE thì trả về -1
+
+📌 Làm việc với danh sách (List)
+2.7. Thêm phần tử vào danh sách kèm tạo danh sách nếu chưa có (LPUSH: lên trên đầu list, RPUSH: xuống cuối list)
+    LPUSH mylist "one"
+    LPUSH mylist "two"
+    RPUSH mylist "three"
+    => Danh sách sẽ có thứ tự: ["two", "one", "three"]
+2.7.1. Thêm phần tử (nếu list chưa tạo sẽ trả về 0) (LPUSHX)
+    lpushx mylist02 "no"
+2.7.2. Thêm vào 1 vị trí bất kỳ (linsert mylist before/after ...)
+    linsert mylist after two two_add
+
+2.8. Lấy dữ liệu từ danh sách (LRANGE)
+    LRANGE mylist 0 -1
+2.8.1. lấy theo index (lindex)
+    lindex mylist 1
+2.8.2. SORT list (SORT mylist (desc) ALPHA)
+
+2.9. Lấy và xóa phần tử đầu tiên (LPOP)
+    LPOP mylist
+2.9.1. xóa phần tử cuối (RPOP)
+    RPOP mylist
+2.9.2. sửa phần tử (lset)
+    lset mylist 0 one_edit
+
+📌 Làm việc với tập hợp (Set)
+2.10. Thêm phần tử vào Set (SADD) (Khi thêm phần tử vào set nếu phần tử đó đã tồn tại sẽ không thể thêm đc nữa)
+    SADD myset "apple"
+    SADD myset "banana"
+    SADD myset "orange"
+
+2.11. Lấy danh sách phần tử (SMEMBERS)
+    SMEMBERS myset
+2.11.1. Lấy length set (scard)
+    scard myset
+
+2.12. Kiểm tra phần tử có trong Set không (SISMEMBER)
+    SISMEMBER myset "banana"
+
+2.13. So Sánh 2 set
+2.13.1. lấy các phần tử ở Set A mà Set B KHÔNG CÓ (SDIFF)
+    SDIFF setA setB
+2.13.2. tạo 1 set mới chứa các phần tử ở Set A mà Set B không có (SDIFFSTORE)
+    SDIFFSTORE newSet setA setB
+2.13.3. Lấy các phần tử giống nhau ở setA và setB (SINTER)
+    SINTER setA setB
+2.13.4. tạo 1 set mới chứa các phần tử giống nhau ở setA và setB (SINTERSTORE)
+    SINTERSTORE newSetInter setA 
+
+2.14. lấy ra các phần tử ở 2 set (SUNION) (phần tử giống nhau sẽ chỉ lấy 1)
+    SUNION setA setB
+2.14.1. tạo 1 set mới tập hợp các phần tử ở 2 set (SUNIONSTORE)
+    SUNIONSTORE setUnion setA setB
+
+
+📌 Làm việc với Hash (lưu trữ một tập hợp các cặp field-value giống JSON)
+2.15. Thêm dữ liệu vào Hash (HSET)
+    HSET user:1001 name "John Doe" age "30"
+2.16. Lấy dữ liệu từ Hash (HGET, HGETALL)
+    HGET user:1001 name (lấy theo field)
+    HGETALL user:1001 (lấy all)
+2.17. Lấy danh sách field trong Hash (HKEYS)
+    HKEYS user:1001
+2.18. Lấy danh sách giá trị của Hash (HVALS)
+    HVALS user:1001
+2.19. Kiểm tra xem field có tồn tại không (HEXISTS)
+    HEXISTS user:1001 age
+2.20. Cập nhật dữ liệu trong Hash
+    HSET user:1001 age "31"
+2.21. Xóa dữ liệu trong Hash
+    HDEL user:1001 country
+2.22. Xóa toàn bộ Hash
+    DEL user:1001
+2.23. Đếm số field trong Hash
+    HLEN user:1001
+
+2.24. Tăng/Giảm giá trị số trong Hash
+2.24.1. Tăng giá trị (HINCRBY)
+    HINCRBY user:1001 age 1
+2.24.2. Giảm giá trị (HINCRBY)
+    HINCRBY user:1001 age -2
+2.24.3. Tăng số thập phân (HINCRBYFLOAT)
+    HINCRBYFLOAT user:1001 balance 10.5
+
+📌 Làm việc với Sorted Set (ZSET)
+ Sorted Set (ZSET) trong Redis là một kiểu dữ liệu lưu trữ các phần tử duy nhất, mỗi phần tử có một điểm số (score).
+ Redis sẽ tự động sắp xếp các phần tử theo giá trị điểm số này.
+
+Ứng dụng thực tế:
+✅ Xếp hạng người chơi trong game 🎮
+✅ Bảng xếp hạng bài viết, sản phẩm theo lượt thích 👍
+✅ Lưu trữ các sự kiện theo thời gian ⏳
+
+2.25. Thêm phần tử vào Sorted Set (ZADD) (💡 Nếu phần tử đã tồn tại, lệnh này sẽ cập nhật điểm số của nó.)
+    ZADD leaderboard 100 "Alice"
+    ZADD leaderboard 200 "Bob"
+    ZADD leaderboard 150 "Charlie"
+    *** LƯU KIỂU TIMESTAMP ***
+    ZADD events 1707403200 "User1 logged in"
+    ZADD events 1707406800 "User2 logged in"
+    ZADD events 1707410400 "User3 logged out"
+
+2.26. Lấy danh sách phần tử
+2.26.1. Lấy danh sách theo thứ tự tăng dần (ZRANGE)
+    ZRANGE leaderboard 0 -1 WITHSCORES
+2.26.2. Lấy danh sách theo thứ tự giảm dần (ZREVRANGE)
+    ZREVRANGE leaderboard 0 -1 WITHSCORES
+2.26.3. Lấy danh sách TĂNG DẦN trong khoảng điểm số (ZRANGEBYSCORE)
+    ZRANGEBYSCORE leaderboard 100 150 WITHSCORES
+2.26.4. Lấy danh sách theo thứ tự GIẢM DẦN với khoảng điểm số (ZREVRANGEBYSCORE)
+    ZREVRANGEBYSCORE leaderboard 150 100 WITHSCORES
+
+2.27. Kiểm tra thông tin trong Sorted Set
+2.27.1. Lấy điểm số của một phần tử (ZSCORE)
+    ZSCORE leaderboard "Alice"
+2.27.2. Lấy vị trí của phần tử theo thứ tự tăng (ZRANK)
+    ZRANK leaderboard "Charlie" (kết quả: 1 => 👉 "Charlie" đứng thứ 2 trong bảng xếp hạng (bắt đầu từ 0))
+2.27.3. Lấy vị trí của phần tử theo thứ tự giảm (ZREVRANK)
+    ZREVRANK leaderboard "Charlie" (Kết quả: 1 => 👉 "Charlie" đứng thứ 2 từ trên xuống)
+
+2.28. Xóa phần tử khỏi Sorted Set
+2.28.1. Xóa một phần tử (ZREM)
+    ZREM leaderboard "Alice"
+2.28.2. Xóa phần tử theo điểm số (ZREMRANGEBYSCORE)
+    ZREMRANGEBYSCORE leaderboard 0 150 (👉 Xóa tất cả phần tử có điểm từ 0 đến 150.)
+2.28.3. Xóa phần tử theo thứ hạng (ZREMRANGEBYRANK)
+    ZREMRANGEBYRANK leaderboard 0 1 (👉 Xóa 2 phần tử có thứ hạng thấp nhất.)
+
+2.29. Cập nhật điểm số
+2.29.1. Tăng điểm (ZINCRBY)
+    ZINCRBY leaderboard 50 "Alice"
+
+2.30. Đếm số phần tử trong Sorted Set
+2.30.1. Lấy tổng số phần tử (ZCARD)
+    ZCARD leaderboard
+2.30.2. Đếm phần tử trong khoảng điểm (ZCOUNT)
+    ZCOUNT leaderboard 100 200
+
+3. Các lệnh quản lý Redis
+3.1. Kiểm tra tất cả các key:
+    KEYS *
+3.2. Xóa toàn bộ dữ liệu Redis
+    FLUSHALL
+3.3. Kiểm tra thông tin server
+    INFO
+3.4. Kiểm tra dung lượng bộ nhớ sử dụng
+    MEMORY STATS
+
+4. 📌 Các Lệnh Pub/Sub trong Redis CLI
+4.1. PUBLISH – Gửi tin nhắn (PUBLISH <channel> "<message>")
+    PUBLISH news "Hello, Redis!"
+4.2. SUBSCRIBE – Đăng ký kênh (SUBSCRIBE <channel1> [<channel2> ...])
+    SUBSCRIBE news
+4.3. PSUBSCRIBE – Đăng ký kênh theo pattern (Wildcard) (PSUBSCRIBE <pattern>)
+    PSUBSCRIBE news.* ( 👉Lắng nghe tất cả kênh bắt đầu bằng "news.")
+4.4. UNSUBSCRIBE – Hủy đăng ký kênh
+    UNSUBSCRIBE news
+    UNSUBSCRIBE ( 👉 Để hủy đăng ký tất cả kênh)
+4.5. PUNSUBSCRIBE – Hủy đăng ký kênh theo pattern
+    PUNSUBSCRIBE news.*
+    PUNSUBSCRIBE ( 👉 Để hủy đăng ký tất cả pattern)
+4.6. PUBSUB CHANNELS – Liệt kê các kênh đang hoạt động (PUBSUB CHANNELS [<pattern>])
+    PUBSUB CHANNELS ( 👉Xem tất cả kênh đang hoạt động)
+    PUBSUB CHANNELS news.* ( 👉Xem kênh có tên bắt đầu bằng "news.")
+4.7. PUBSUB NUMSUB – Đếm số lượng subscriber trên mỗi kênh (PUBSUB NUMSUB <channel1> [<channel2> ...])
+    PUBSUB NUMSUB news
+
+5. Thoát khỏi Redis CLI:
+    exit hoặc dùng phím Ctrl + D.
