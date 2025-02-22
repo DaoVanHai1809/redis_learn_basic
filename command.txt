@@ -36,8 +36,8 @@ Redis (Remote Dictionary Server) là một cơ sở dữ liệu NoSQL dạng key
 
 🔵 Làm việc với Redis CLI
 1. Kết nối vào Redis (Bash)
- TH1: sử dụng docker => docker exec -it my-redis redis-cli
- TH2: Nếu Redis đang chạy trên máy cục bộ (không dùng Docker): redis-cli
+ TH1: sử dụng docker => docker exec -it my-redis redis-cli.
+ TH2: Nếu Redis đang chạy trên máy cục bộ (không dùng Docker): redis-cli.
 
 2. Các lệnh cơ bản trong Redis CLI
 📌 Làm việc với key-value
